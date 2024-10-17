@@ -2,98 +2,103 @@
 #define INCLUDE_GAMEPAD_MODULE
 #include <Dabble.h>
 
-// Right Motor
-int RPWM_RightMotor = 5; // Right motor PWM for clockwise (forward) rotation
-int LPWM_RightMotor = 6; // Right motor PWM for counterclockwise (reverse) rotation
+// Define Pins for BTS7960 Motor Driver
+int frontRightEnablePin = 7;  // R_EN for front right motor
+int frontLeftEnablePin = 8;   // L_EN for front left motor
+int frontRightPWMPin = 5;     // RPWM for front right motor
+int frontLeftPWMPin = 6;      // LPWM for front left motor
 
-// Left Motor
-int RPWM_LeftMotor = 9;  // Left motor PWM for clockwise (forward) rotation
-int LPWM_LeftMotor = 10; // Left motor PWM for counterclockwise (reverse) rotation
+int backRightEnablePin = 9;   // R_EN for back right motor
+int backLeftEnablePin = 10;   // L_EN for back left motor
+int backRightPWMPin = 3;      // RPWM for back right motor
+int backLeftPWMPin = 11;      // LPWM for back left motor
 
-int motorSpeed = 60; // Set initial speed to 60 out of 255
+const int speedLimit = 60;  // PWM Speed Limit (0-255)
 
-void setup()
-{
-  // Define motor control pins as outputs
-  pinMode(RPWM_RightMotor, OUTPUT);
-  pinMode(LPWM_RightMotor, OUTPUT);
-  pinMode(RPWM_LeftMotor, OUTPUT);
-  pinMode(LPWM_LeftMotor, OUTPUT);
+// Function Prototypes
+void rotateMotors(int frontRightSpeed, int frontLeftSpeed, int backRightSpeed, int backLeftSpeed);
 
-  // Initialize Dabble with Bluetooth communication at 9600 baud rate
-  Dabble.begin(9600, 2, 3);
+void setup() {
+  // Motor Control Pins Setup
+  pinMode(frontRightEnablePin, OUTPUT);
+  pinMode(frontLeftEnablePin, OUTPUT);
+  pinMode(frontRightPWMPin, OUTPUT);
+  pinMode(frontLeftPWMPin, OUTPUT);
+  
+  pinMode(backRightEnablePin, OUTPUT);
+  pinMode(backLeftEnablePin, OUTPUT);
+  pinMode(backRightPWMPin, OUTPUT);
+  pinMode(backLeftPWMPin, OUTPUT);
+
+  // Enable all motors
+  digitalWrite(frontRightEnablePin, HIGH);
+  digitalWrite(frontLeftEnablePin, HIGH);
+  digitalWrite(backRightEnablePin, HIGH);
+  digitalWrite(backLeftEnablePin, HIGH);
+
+  // Bluetooth Setup
+  Dabble.begin(9600, 2, 3);  // Baud rate and pins for serial communication
 }
 
-void loop()
-{
-  Dabble.processInput(); // Process input from Dabble Gamepad module
+void loop() {
+  int frontRightSpeed = 0;
+  int frontLeftSpeed = 0;
+  int backRightSpeed = 0;
+  int backLeftSpeed = 0;
 
-  // Initialize motor speeds to zero for each loop cycle
-  int rightMotorSpeed = 0;
-  int leftMotorSpeed = 0;
+  // Process Bluetooth Input
+  Dabble.processInput();
 
-  // Process gamepad inputs and set motor speeds accordingly
-  if (GamePad.isUpPressed())
-  {
-    rightMotorSpeed = motorSpeed;
-    leftMotorSpeed = motorSpeed;
+  // Forward Motion
+  if (GamePad.isUpPressed()) {
+    frontRightSpeed = speedLimit;
+    frontLeftSpeed = speedLimit;
+    backRightSpeed = speedLimit;
+    backLeftSpeed = speedLimit;
   }
   
-  if (GamePad.isDownPressed())
-  {
-    rightMotorSpeed = -motorSpeed;
-    leftMotorSpeed = -motorSpeed;
+  // Backward Motion
+  if (GamePad.isDownPressed()) {
+    frontRightSpeed = -speedLimit;
+    frontLeftSpeed = -speedLimit;
+    backRightSpeed = -speedLimit;
+    backLeftSpeed = -speedLimit;
   }
 
-  if (GamePad.isLeftPressed())
-  {
-    rightMotorSpeed = motorSpeed;
-    leftMotorSpeed = 0;
-  }
-  
-  if (GamePad.isRightPressed())
-  {
-    rightMotorSpeed = 0;
-    leftMotorSpeed = motorSpeed;
+  // Left Turn
+  if (GamePad.isLeftPressed()) {
+    frontRightSpeed = speedLimit;
+    frontLeftSpeed = 0;
+    backRightSpeed = speedLimit;
+    backLeftSpeed = 0;
   }
 
-  // Rotate motors based on calculated speed values
-  rotateMotor(rightMotorSpeed, leftMotorSpeed);
+  // Right Turn
+  if (GamePad.isRightPressed()) {
+    frontRightSpeed = 0;
+    frontLeftSpeed = speedLimit;
+    backRightSpeed = 0;
+    backLeftSpeed = speedLimit;
+  }
+
+  // Update Motor Directions and Speeds
+  rotateMotors(frontRightSpeed, frontLeftSpeed, backRightSpeed, backLeftSpeed);
 }
 
-void rotateMotor(int rightMotorSpeed, int leftMotorSpeed)
-{
-  // Right Motor Control
-  if (rightMotorSpeed > 0) // Forward
-  {
-    analogWrite(RPWM_RightMotor, rightMotorSpeed);
-    analogWrite(LPWM_RightMotor, 0);
-  }
-  else if (rightMotorSpeed < 0) // Reverse
-  {
-    analogWrite(RPWM_RightMotor, 0);
-    analogWrite(LPWM_RightMotor, abs(rightMotorSpeed));
-  }
-  else // Stop
-  {
-    analogWrite(RPWM_RightMotor, 0);
-    analogWrite(LPWM_RightMotor, 0);
-  }
+void rotateMotors(int frontRightSpeed, int frontLeftSpeed, int backRightSpeed, int backLeftSpeed) {
+  // Front Right Motor Control
+  analogWrite(frontRightPWMPin, abs(frontRightSpeed));
+  digitalWrite(frontRightEnablePin, frontRightSpeed > 0);
 
-  // Left Motor Control
-  if (leftMotorSpeed > 0) // Forward
-  {
-    analogWrite(RPWM_LeftMotor, leftMotorSpeed);
-    analogWrite(LPWM_LeftMotor, 0);
-  }
-  else if (leftMotorSpeed < 0) // Reverse
-  {
-    analogWrite(RPWM_LeftMotor, 0);
-    analogWrite(LPWM_LeftMotor, abs(leftMotorSpeed));
-  }
-  else // Stop
-  {
-    analogWrite(RPWM_LeftMotor, 0);
-    analogWrite(LPWM_LeftMotor, 0);
-  }
+  // Front Left Motor Control
+  analogWrite(frontLeftPWMPin, abs(frontLeftSpeed));
+  digitalWrite(frontLeftEnablePin, frontLeftSpeed > 0);
+
+  // Back Right Motor Control
+  analogWrite(backRightPWMPin, abs(backRightSpeed));
+  digitalWrite(backRightEnablePin, backRightSpeed > 0);
+
+  // Back Left Motor Control
+  analogWrite(backLeftPWMPin, abs(backLeftSpeed));
+  digitalWrite(backLeftEnablePin, backLeftSpeed > 0);
 }

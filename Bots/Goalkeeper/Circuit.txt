@@ -1,33 +1,35 @@
-Circuit Connections
-Components Required:
-Arduino Uno
-BTS7960 Motor Driver Module (can handle two motors, so you’ll need two modules for four 775 motors)
-HM-10 Bluetooth Module
-Four 775 Motors
-12V LiPo Battery
-Wiring Diagram:
+pdated Circuit Connections
 Power Supply:
 
-Connect the positive terminal of the 12V LiPo battery to the +12V terminal on both BTS7960 modules.
-Connect the negative terminal of the battery to the GND terminal on both BTS7960 modules.
-Arduino to BTS7960 Motor Driver (Right Motor):
+LiPo Battery (12V):
 
-RPWM (Right motor forward) pin on BTS7960 -> Arduino pin 5
-LPWM (Right motor reverse) pin on BTS7960 -> Arduino pin 6
-+5V and GND on the BTS7960 -> +5V and GND on the Arduino (for logic level).
-Arduino to BTS7960 Motor Driver (Left Motor):
+Connect the positive terminal of the LiPo battery to B+ on both BTS modules.
+Connect the negative terminal of the LiPo battery to B- on both BTS modules.
+Buck Converter:
 
-RPWM (Left motor forward) pin on BTS7960 -> Arduino pin 9
-LPWM (Left motor reverse) pin on BTS7960 -> Arduino pin 10
-+5V and GND on the BTS7960 -> +5V and GND on the Arduino (for logic level).
-Bluetooth Module (HM-10):
+Connect the input of the buck converter to the LiPo battery.
+Set the output to 5V, and connect the output to the VIN and GND pins on the Arduino.
+Arduino Power Supply:
 
-TX (Bluetooth) -> RX (Arduino) (usually pin 3, depending on software serial setup)
-RX (Bluetooth) -> TX (Arduino) (usually pin 2)
-VCC -> 5V on Arduino
-GND -> GND on Arduino
+Connect the 5V output from the Arduino to VCC on both BTS modules.
+Connect GND from the Arduino to GND on both BTS modules.
 Motor Connections:
 
-Connect each 775 motor to the M+ and M- terminals on the BTS7960 modules. Connect two motors on each BTS7960 module to drive all four wheels.
-Right Motors -> BTS7960 Motor Driver 1
-Left Motors -> BTS7960 Motor Driver 2
+BTS Module 1 (for front motors):
+Connect M+ and M- to the two front motors.
+BTS Module 2 (for back motors):
+Connect M+ and M- to the two back motors.
+Control Pins (Arduino to BTS Modules):
+
+For BTS Module 1 (front motors):
+
+R_EN → Connect to Arduino Pin 7.
+L_EN → Connect to Arduino Pin 8.
+RPWM → Connect to Arduino Pin 5.
+LPWM → Connect to Arduino Pin 6.
+For BTS Module 2 (back motors):
+
+R_EN → Connect to Arduino Pin 9.
+L_EN → Connect to Arduino Pin 10.
+RPWM → Connect to Arduino Pin 3.
+LPWM → Connect to Arduino Pin 11.
