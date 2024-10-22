@@ -1,104 +1,135 @@
+/* 
+FL --- FR
+|      |
+|      |
+BL --- BR
+
+Parts List:
+- Lipo 12V Battery
+- Double BTS7960 Driver Module x 2
+- Arduino Uno
+- 775 12V Motors x 4
+- HM-10 BLE Module
+- Buck Converter (PSU)
+
+Motor Wiring (Parallel):
+
+Module 1 (LEFT SIDE):
+- frontLeft and backLeft motors in parallel
+- These motors are on the same vertical line (left side)
+
+Module 2 (RIGHT SIDE):
+- frontRight and backRight motors in parallel
+- These motors are on the same vertical line (right side)
+
+Pin Connections:
+
+BTS7960 Module 1 (LEFT SIDE):
+- VCC -> Arduino 3.3V
+- L_EN, R_EN -> Arduino 3.3V 
+- GND -> Arduino GND
+- RPWM -> Arduino Digital Pin 6 (R1PWM)
+- LPWM -> Arduino Digital Pin 5 (L1PWM)
+
+BTS7960 Module 2 (RIGHT SIDE):
+- VCC -> Arduino 3.3V
+- L_EN, R_EN -> Arduino 3.3V
+- GND -> Arduino GND
+- RPWM -> Arduino Digital Pin 11 (R2PWM)
+- LPWM -> Arduino Digital Pin 10 (L2PWM)
+
+Motor Power:
+- Both modules M+ and M- terminals connect to respective motors in parallel
+- Both modules power terminals (B+, B-) connect to battery (11.1V - 30V)
+
+Bluetooth Module HM-10:
+- VCC -> Arduino 5V
+- GND -> Arduino GND
+- TX -> Arduino Pin 2
+- RX -> Arduino Pin 3
+
+Notes:
+- R1PWM/R2PWM control forward motion
+- L1PWM/L2PWM control backward motion
+- When one side moves forward and other backward = turning
+- Both modules share the same power source (battery)
+- Enable pins are tied to 3.3V for constant enable
+*/
+
 #define CUSTOM_SETTINGS
 #define INCLUDE_GAMEPAD_MODULE
 #include <Dabble.h>
 
-// Define Pins for BTS7960 Motor Driver
-int frontRightEnablePin = 7;  // R_EN for front right motor
-int frontLeftEnablePin = 8;   // L_EN for front left motor
-int frontRightPWMPin = 5;     // RPWM for front right motor
-int frontLeftPWMPin = 6;      // LPWM for front left motor
+int Speed = 45;
 
-int backRightEnablePin = 9;   // R_EN for back right motor
-int backLeftEnablePin = 10;   // L_EN for back left motor
-int backRightPWMPin = 3;      // RPWM for back right motor
-int backLeftPWMPin = 11;      // LPWM for back left motor
-
-const int speedLimit = 60;  // PWM Speed Limit (0-255)
-
-// Function Prototypes
-void rotateMotors(int frontRightSpeed, int frontLeftSpeed, int backRightSpeed, int backLeftSpeed);
+int R1PWM = 6;
+int L1PWM = 5;
+int R2PWM = 11;   
+int L2PWM = 10;   
 
 void setup() {
-  // Motor Control Pins Setup
-  pinMode(frontRightEnablePin, OUTPUT);
-  pinMode(frontLeftEnablePin, OUTPUT);
-  pinMode(frontRightPWMPin, OUTPUT);
-  pinMode(frontLeftPWMPin, OUTPUT);
-  
-  pinMode(backRightEnablePin, OUTPUT);
-  pinMode(backLeftEnablePin, OUTPUT);
-  pinMode(backRightPWMPin, OUTPUT);
-  pinMode(backLeftPWMPin, OUTPUT);
+  Serial.begin(9600);
+  Dabble.begin(9600, 2, 3); 
 
-  // Enable all motors
-  digitalWrite(frontRightEnablePin, HIGH);
-  digitalWrite(frontLeftEnablePin, HIGH);
-  digitalWrite(backRightEnablePin, HIGH);
-  digitalWrite(backLeftEnablePin, HIGH);
-
-  // Bluetooth Setup
-  Dabble.begin(9600, 2, 3);  // Baud rate and pins for serial communication
+  pinMode(R1PWM, OUTPUT);
+  pinMode(L1PWM, OUTPUT);
+  pinMode(R2PWM, OUTPUT);
+  pinMode(L2PWM, OUTPUT);
 }
 
 void loop() {
-  int frontRightSpeed = 0;
-  int frontLeftSpeed = 0;
-  int backRightSpeed = 0;
-  int backLeftSpeed = 0;
-
-  // Process Bluetooth Input
   Dabble.processInput();
 
-  // Forward Motion
+  if (GamePad.isTrianglePressed()) {
+    Speed = 255;
+  } 
+  if (GamePad.isSquarePressed()){
+    Speed = 200;
+  } 
+  if (GamePad.isCrossPressed()) {
+    Speed = 90;
+  } 
+  if (GamePad.isCirclePressed()) {
+    Speed = 20;
+  }
+
+  if (GamePad.isStartPressed()) {
+    Speed = 45;
+  }
+
+
   if (GamePad.isUpPressed()) {
-    frontRightSpeed = speedLimit;
-    frontLeftSpeed = speedLimit;
-    backRightSpeed = speedLimit;
-    backLeftSpeed = speedLimit;
+    analogWrite(R1PWM, Speed);
+    analogWrite(L1PWM, 0);
+    analogWrite(R2PWM, Speed);
+    analogWrite(L2PWM, 0);
+    Serial.println("Forward");
   }
-  
-  // Backward Motion
-  if (GamePad.isDownPressed()) {
-    frontRightSpeed = -speedLimit;
-    frontLeftSpeed = -speedLimit;
-    backRightSpeed = -speedLimit;
-    backLeftSpeed = -speedLimit;
+  else if (GamePad.isDownPressed()) {
+    analogWrite(R1PWM, 0);
+    analogWrite(L1PWM, Speed);
+    analogWrite(R2PWM, 0);
+    analogWrite(L2PWM, Speed);
+    Serial.println("Backward");
   }
-
-  // Left Turn
-  if (GamePad.isLeftPressed()) {
-    frontRightSpeed = speedLimit;
-    frontLeftSpeed = 0;
-    backRightSpeed = speedLimit;
-    backLeftSpeed = 0;
+  else if (GamePad.isLeftPressed()) {
+    analogWrite(R1PWM, 0);
+    analogWrite(L1PWM, Speed);
+    analogWrite(R2PWM, Speed);
+    analogWrite(L2PWM, 0);
+    Serial.println("Left");
   }
-
-  // Right Turn
-  if (GamePad.isRightPressed()) {
-    frontRightSpeed = 0;
-    frontLeftSpeed = speedLimit;
-    backRightSpeed = 0;
-    backLeftSpeed = speedLimit;
+  else if (GamePad.isRightPressed()) {
+    analogWrite(R1PWM, Speed);
+    analogWrite(L1PWM, 0);
+    analogWrite(R2PWM, 0);
+    analogWrite(L2PWM, Speed);
+    Serial.println("Right");
   }
-
-  // Update Motor Directions and Speeds
-  rotateMotors(frontRightSpeed, frontLeftSpeed, backRightSpeed, backLeftSpeed);
-}
-
-void rotateMotors(int frontRightSpeed, int frontLeftSpeed, int backRightSpeed, int backLeftSpeed) {
-  // Front Right Motor Control
-  analogWrite(frontRightPWMPin, abs(frontRightSpeed));
-  digitalWrite(frontRightEnablePin, frontRightSpeed > 0);
-
-  // Front Left Motor Control
-  analogWrite(frontLeftPWMPin, abs(frontLeftSpeed));
-  digitalWrite(frontLeftEnablePin, frontLeftSpeed > 0);
-
-  // Back Right Motor Control
-  analogWrite(backRightPWMPin, abs(backRightSpeed));
-  digitalWrite(backRightEnablePin, backRightSpeed > 0);
-
-  // Back Left Motor Control
-  analogWrite(backLeftPWMPin, abs(backLeftSpeed));
-  digitalWrite(backLeftEnablePin, backLeftSpeed > 0);
+  else {
+    analogWrite(R1PWM, 0);
+    analogWrite(L1PWM, 0);
+    analogWrite(R2PWM, 0);
+    analogWrite(L2PWM, 0);
+  }
 }

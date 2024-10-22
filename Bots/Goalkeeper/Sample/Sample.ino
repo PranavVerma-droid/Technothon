@@ -1,41 +1,33 @@
-// Define Pins for BTS7960 Motor Driver
-int frontRightEnablePin = 7;  // R_EN for front right motor
-int frontLeftEnablePin = 8;   // L_EN for front left motor
-int frontRightPWMPin = 5;     // RPWM for front right motor
-int frontLeftPWMPin = 6;      // LPWM for front left motor
+/*FOR TWO MOTORS*/
 
-int backRightEnablePin = 9;   // R_EN for back right motor
-int backLeftEnablePin = 10;   // L_EN for back left motor
-int backRightPWMPin = 3;      // RPWM for back right motor
-int backLeftPWMPin = 11;      // LPWM for back left motor
+/* Motor 1 (First BTS7960 Module) */
+int R1PWM = 6;  // RPWM pin for Motor 1
+int L1PWM = 5;  // LPWM pin for Motor 1
 
-const int pwmSpeed = 60;  // Set speed to 60 (out of 255)
+/* Motor 2 (Second BTS7960 Module) */
+int R2PWM = 10; // RPWM pin for Motor 2
+int L2PWM = 9;  // LPWM pin for Motor 2
+
+const int motorSpeed = 100;  // PWM speed (0-255)
 
 void setup() {
-  // Set Motor Control Pins as Output
-  pinMode(frontRightEnablePin, OUTPUT);
-  pinMode(frontLeftEnablePin, OUTPUT);
-  pinMode(frontRightPWMPin, OUTPUT);
-  pinMode(frontLeftPWMPin, OUTPUT);
-  
-  pinMode(backRightEnablePin, OUTPUT);
-  pinMode(backLeftEnablePin, OUTPUT);
-  pinMode(backRightPWMPin, OUTPUT);
-  pinMode(backLeftPWMPin, OUTPUT);
+  // Set Motor 1 control pins as outputs
+  pinMode(R1PWM, OUTPUT);
+  pinMode(L1PWM, OUTPUT);
 
-  // Enable all motors
-  digitalWrite(frontRightEnablePin, HIGH);
-  digitalWrite(frontLeftEnablePin, HIGH);
-  digitalWrite(backRightEnablePin, HIGH);
-  digitalWrite(backLeftEnablePin, HIGH);
+  // Set Motor 2 control pins as outputs
+  pinMode(R2PWM, OUTPUT);
+  pinMode(L2PWM, OUTPUT);
 
-  // Set all motors to run at a PWM speed of 60
-  analogWrite(frontRightPWMPin, pwmSpeed);
-  analogWrite(frontLeftPWMPin, pwmSpeed);
-  analogWrite(backRightPWMPin, pwmSpeed);
-  analogWrite(backLeftPWMPin, pwmSpeed);
+  // Initialize Motor 1 to move forward
+  analogWrite(R1PWM, motorSpeed);  // Set forward speed for Motor 1
+  analogWrite(L1PWM, 0);           // Disable reverse for Motor 1
+
+  // Initialize Motor 2 to move forward
+  analogWrite(R2PWM, motorSpeed);  // Set forward speed for Motor 2
+  analogWrite(L2PWM, 0);           // Disable reverse for Motor 2
 }
 
 void loop() {
-  // Motors will keep running at PWM 60
+  // Both motors will continue to run forward at PWM 60 indefinitely
 }
