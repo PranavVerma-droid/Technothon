@@ -44,7 +44,7 @@ Motor Power:
 
 Bluetooth Module HM-10:
 - VCC -> Arduino 5V
-- GND -> Arduino GND
+- GND -> Arduino GN
 - TX -> Arduino Pin 2
 - RX -> Arduino Pin 3
 
@@ -75,6 +75,11 @@ void setup() {
   pinMode(L1PWM, OUTPUT);
   pinMode(R2PWM, OUTPUT);
   pinMode(L2PWM, OUTPUT);
+
+    analogWrite(R1PWM, 0);
+    analogWrite(L1PWM, 0);
+    analogWrite(R2PWM, 0);
+    analogWrite(L2PWM, 0);
 }
 
 void loop() {
